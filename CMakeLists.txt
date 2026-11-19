@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 4.3)
 project(my_3d_world C)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
@@ -26,12 +27,21 @@ set(CGLM_STATIC ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(glfw cglm)
 
-add_executable(my_3d_world main.c)
+file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c")
+
+add_executable(my_3d_world ${PROJECT_SOURCES})
 
 target_include_directories(my_3d_world PRIVATE include)
-
 target_link_libraries(my_3d_world PRIVATE glad glfw cglm)
 
 if(WIN32)
     target_link_libraries(my_3d_world PRIVATE dwmapi)
 endif()
+
+add_custom_command(TARGET my_3d_world POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:my_3d_world>/assets"
+)
+
+target_compile_definitions(my_3d_world PRIVATE ASSET_DIR="${CMAKE_SOURCE_DIR}/assets")
