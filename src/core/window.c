@@ -108,10 +108,10 @@ Window *window_new(const char *title, const int width, const int height) {
     const TerrainConfig config = {
         .width       = 256,
         .depth       = 256,
-        .scale       = 0.025f,
-        .max_height  = 22.0f,
-        .octaves     = 5,
-        .persistence = 0.5f,
+        .scale       = 0.0075f,
+        .max_height  = 28.0f,
+        .octaves     = 4,
+        .persistence = 0.4f,
         .lacunarity  = 2.0f
     };
     vec3 terrain_pos = { -128.0f, 0.0f, -128.0f };
