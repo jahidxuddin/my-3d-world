@@ -3,11 +3,10 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stdio.h>
 #include "graphics/camera.h"
-#include "graphics/mesh.h"
 #include "graphics/shader.h"
 #include "core/input.h"
+#include "world/grass.h"
 #include "world/terrain.h"
 
 struct Window {
@@ -16,7 +15,9 @@ struct Window {
     int width, height;
     Camera *camera;
     Terrain *terrain;
-    Shader *shader;
+    Shader *terrain_shader;
+    GrassField *grass;
+    Shader *grass_shader;
     Input *input;
     float last_frame;
 };

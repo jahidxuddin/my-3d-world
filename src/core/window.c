@@ -1,6 +1,8 @@
 #include "core/window.h"
+#include "graphics/mesh.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "world/noise.h"
 
 static const Vertex cube_vertices[] = {
     {{-0.5f,-0.5f, 0.5f},{0,0,1},{0,0}}, {{0.5f,-0.5f, 0.5f},{0,0,1},{1,0}}, {{0.5f,0.5f,0.5f},{0,0,1},{1,1}}, {{-0.5f,0.5f,0.5f},{0,0,1},{0,1}},
@@ -75,6 +77,7 @@ Window *window_new(const char *title, const int width, const int height) {
 
     glfwShowWindow(handle);
     glfwMakeContextCurrent(handle);
+    glfwSwapInterval(1);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         printf("Error while initialising GLAD\n");
@@ -83,7 +86,7 @@ Window *window_new(const char *title, const int width, const int height) {
         return NULL;
     }
 
-    Window *window = malloc(sizeof(Window));
+    Window *window = calloc(1, sizeof(Window));
     if (!window) {
         glfwDestroyWindow(handle);
         glfwTerminate();
@@ -104,7 +107,7 @@ Window *window_new(const char *title, const int width, const int height) {
     if (window->camera) {
         camera_process_mouse(window->camera, 0.0f, -250.0f);
     }
-    const PerlinNoise *noise = perlin_new(1337);
+    PerlinNoise *noise = perlin_new(1337);
     const TerrainConfig config = {
         .width       = 256,
         .depth       = 256,
@@ -116,14 +119,12 @@ Window *window_new(const char *title, const int width, const int height) {
     };
     vec3 terrain_pos = { -128.0f, 0.0f, -128.0f };
     window->terrain = terrain_new(noise, config, terrain_pos);
-    window->shader = shader_new(ASSET_DIR "/shaders/terrain.vert", ASSET_DIR "/shaders/terrain.frag");
-    if (!window->camera || !window->terrain || !window->shader) {
-        camera_destroy(window->camera);
-        terrain_destroy(window->terrain);
-        shader_destroy(window->shader);
-        glfwDestroyWindow(handle);
-        free(window);
-        glfwTerminate();
+    window->terrain_shader = shader_new(ASSET_DIR "/shaders/terrain.vert", ASSET_DIR "/shaders/terrain.frag");
+    window->grass_shader = shader_new(ASSET_DIR "/shaders/grass.vert", ASSET_DIR "/shaders/grass.frag");
+    window->grass = grass_new(noise, config, terrain_pos, 250000, 42);
+    perlin_destroy(noise);
+    if (!window->camera || !window->terrain || !window->terrain_shader || !window->grass_shader || !window->grass) {
+        window_destroy(window);
         return NULL;
     }
     window->last_frame = (float) glfwGetTime();
@@ -131,12 +132,7 @@ Window *window_new(const char *title, const int width, const int height) {
     glfwSetFramebufferSizeCallback(handle, framebuffer_size_callback);
     window->input = input_new(handle, window->camera);
     if (!window->input) {
-        camera_destroy(window->camera);
-        terrain_destroy(window->terrain);
-        shader_destroy(window->shader);
-        glfwDestroyWindow(handle);
-        free(window);
-        glfwTerminate();
+        window_destroy(window);
         return NULL;
     }
     window->input->owner = window;
@@ -177,15 +173,20 @@ void window_loop(Window *window) {
 }
 
 void window_render(const Window *window) {
-    if (!window || !window->terrain || !window->shader || !window->camera || window->height <= 0) return;
+    if (!window || !window->terrain || !window->terrain_shader || !window->camera || window->height <= 0) return;
     mat4 view, projection;
     camera_get_view_matrix(window->camera, view);
     camera_get_projection_matrix(window->camera, (float) window->width / (float) window->height, projection);
-    shader_use(window->shader);
-    shader_set_mat4(window->shader, "u_view", view);
-    shader_set_mat4(window->shader, "u_projection", projection);
+    shader_use(window->terrain_shader);
+    shader_set_mat4(window->terrain_shader, "u_view", view);
+    shader_set_mat4(window->terrain_shader, "u_projection", projection);
     glBindVertexArray(window->terrain->mesh->vao);
-    terrain_draw(window->terrain, window->shader);
+    terrain_draw(window->terrain, window->terrain_shader);
+    mat4 view_projection;
+    glm_mat4_mul(projection, view, view_projection);
+    shader_use(window->grass_shader);
+    shader_set_mat4(window->grass_shader, "u_view_projection", view_projection);
+    grass_draw(window->grass, window->grass_shader, (float)glfwGetTime());
     glBindVertexArray(0);
 }
 
@@ -196,7 +197,9 @@ void window_destroy(Window *window) {
     if (window->handle) {
         camera_destroy(window->camera);
         terrain_destroy(window->terrain);
-        shader_destroy(window->shader);
+        shader_destroy(window->terrain_shader);
+        grass_destroy(window->grass);
+        shader_destroy(window->grass_shader);
         input_destroy(window->input);
         glfwDestroyWindow(window->handle);
     }

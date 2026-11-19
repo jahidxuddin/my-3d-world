@@ -1,7 +1,7 @@
 #ifndef MY_3D_WORLD_MESH_H
 #define MY_3D_WORLD_MESH_H
 #include "glad/glad.h"
-#include <stdlib.h>
+#include <stddef.h>
 
 typedef struct {
     float position[3];

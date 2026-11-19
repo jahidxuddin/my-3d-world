@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 #include "../graphics/mesh.h"
-#include "../graphics/shader.h"
 #include "world/noise.h"
+#include "../graphics/shader.h"
 
 typedef struct {
     int width;

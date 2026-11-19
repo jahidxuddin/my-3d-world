@@ -2,8 +2,6 @@
 #define MY_3D_WORLD_NOISE_H
 
 #include <stdint.h>
-#include <stdlib.h>
-#include <math.h>
 
 typedef struct {
     uint8_t perm[512];

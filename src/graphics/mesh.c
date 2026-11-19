@@ -1,4 +1,5 @@
 #include "../../include/graphics/mesh.h"
+#include <stdlib.h>
 
 Mesh *mesh_new(const Vertex *vertices, const size_t vertex_count, const unsigned int *indices, size_t index_count) {
     Mesh *mesh = malloc(sizeof(Mesh));

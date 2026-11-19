@@ -1,4 +1,6 @@
 #include "../../include/world/noise.h"
+#include <math.h>
+#include <stdlib.h>
 
 PerlinNoise *perlin_new(const uint32_t seed) {
     PerlinNoise *perlin_noise = malloc(sizeof(PerlinNoise));
