@@ -27,7 +27,7 @@ static const unsigned int cube_indices[] = {
 static void framebuffer_size_callback(GLFWwindow *handle, const int width, const int height) {
     glViewport(0, 0, width, height);
 
-    Input *input = glfwGetWindowUserPointer(handle);
+    const Input *input = glfwGetWindowUserPointer(handle);
     Window *window = input ? input->owner : NULL;
     if (window) {
         window->width = width;
@@ -95,17 +95,31 @@ Window *window_new(const char *title, const int width, const int height) {
     glViewport(0, 0, fbWidth, fbHeight);
 
     window->handle = handle;
+    snprintf(window->title, sizeof(window->title), "%s", title);
     window->width = fbWidth;
     window->height = fbHeight;
     glEnable(GL_DEPTH_TEST);
-    const vec3 camera_position = {0.0f, 0.0f, 3.0f};
+    const vec3 camera_position = {0.0f, 100.0f, 220.0f};
     window->camera = camera_new((float *) camera_position);
-    window->cube = mesh_new(cube_vertices, sizeof(cube_vertices) / sizeof(cube_vertices[0]), cube_indices,
-                            sizeof(cube_indices) / sizeof(cube_indices[0]));
-    window->shader = shader_new(ASSET_DIR "/shaders/cube.vert", ASSET_DIR "/shaders/cube.frag");
-    if (!window->camera || !window->cube || !window->shader) {
+    if (window->camera) {
+        camera_process_mouse(window->camera, 0.0f, -250.0f);
+    }
+    const PerlinNoise *noise = perlin_new(1337);
+    const TerrainConfig config = {
+        .width       = 256,
+        .depth       = 256,
+        .scale       = 0.025f,
+        .max_height  = 22.0f,
+        .octaves     = 5,
+        .persistence = 0.5f,
+        .lacunarity  = 2.0f
+    };
+    vec3 terrain_pos = { -128.0f, 0.0f, -128.0f };
+    window->terrain = terrain_new(noise, config, terrain_pos);
+    window->shader = shader_new(ASSET_DIR "/shaders/terrain.vert", ASSET_DIR "/shaders/terrain.frag");
+    if (!window->camera || !window->terrain || !window->shader) {
         camera_destroy(window->camera);
-        mesh_destroy(window->cube);
+        terrain_destroy(window->terrain);
         shader_destroy(window->shader);
         glfwDestroyWindow(handle);
         free(window);
@@ -118,7 +132,7 @@ Window *window_new(const char *title, const int width, const int height) {
     window->input = input_new(handle, window->camera);
     if (!window->input) {
         camera_destroy(window->camera);
-        mesh_destroy(window->cube);
+        terrain_destroy(window->terrain);
         shader_destroy(window->shader);
         glfwDestroyWindow(handle);
         free(window);
@@ -131,10 +145,25 @@ Window *window_new(const char *title, const int width, const int height) {
 }
 
 void window_loop(Window *window) {
+    float fps_elapsed = 0.0f;
+    unsigned int fps_frames = 0;
+
     while (!glfwWindowShouldClose(window->handle)) {
         const float current_frame = (float) glfwGetTime();
         const float delta_time = current_frame - window->last_frame;
         window->last_frame = current_frame;
+        fps_elapsed += delta_time;
+        fps_frames++;
+
+        if (fps_elapsed >= 1.0f) {
+            char title[320];
+            const float fps = (float) fps_frames / fps_elapsed;
+            snprintf(title, sizeof(title), "%s | %.0f FPS", window->title, fps);
+            glfwSetWindowTitle(window->handle, title);
+            fps_elapsed = 0.0f;
+            fps_frames = 0;
+        }
+
         input_process(window->input, delta_time);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -148,23 +177,15 @@ void window_loop(Window *window) {
 }
 
 void window_render(const Window *window) {
-    if (!window || !window->cube || !window->shader || !window->camera || window->height <= 0) return;
-    mat4 model, view, projection;
-    glm_mat4_identity(model);
+    if (!window || !window->terrain || !window->shader || !window->camera || window->height <= 0) return;
+    mat4 view, projection;
     camera_get_view_matrix(window->camera, view);
     camera_get_projection_matrix(window->camera, (float) window->width / (float) window->height, projection);
     shader_use(window->shader);
-    shader_set_mat4(window->shader, "uModel", model);
-    shader_set_mat4(window->shader, "uView", view);
-    shader_set_mat4(window->shader, "uProjection", projection);
-    const vec3 color = {0.18f, 0.62f, 0.95f};
-    const vec3 light = {1.0f, 0.96f, 0.88f};
-    const vec3 direction = {-0.5f, -1.0f, -0.4f};
-    shader_set_vec3(window->shader, "uObjectColor", color);
-    shader_set_vec3(window->shader, "uLightColor", light);
-    shader_set_vec3(window->shader, "uLightDir", direction);
-    glBindVertexArray(window->cube->vao);
-    mesh_draw(window->cube);
+    shader_set_mat4(window->shader, "u_view", view);
+    shader_set_mat4(window->shader, "u_projection", projection);
+    glBindVertexArray(window->terrain->mesh->vao);
+    terrain_draw(window->terrain, window->shader);
     glBindVertexArray(0);
 }
 
@@ -174,7 +195,7 @@ void window_destroy(Window *window) {
     }
     if (window->handle) {
         camera_destroy(window->camera);
-        mesh_destroy(window->cube);
+        terrain_destroy(window->terrain);
         shader_destroy(window->shader);
         input_destroy(window->input);
         glfwDestroyWindow(window->handle);

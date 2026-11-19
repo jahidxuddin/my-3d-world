@@ -8,17 +8,19 @@
 #include "graphics/mesh.h"
 #include "graphics/shader.h"
 #include "core/input.h"
+#include "world/terrain.h"
 
 struct Window {
     GLFWwindow *handle;
+    char title[256];
     int width, height;
     Camera *camera;
-    Mesh *cube;
+    Terrain *terrain;
     Shader *shader;
     Input *input;
     float last_frame;
 };
-typedef struct Window Window;
+typedef Window Window;
 
 Window *window_new(const char *title, int width, int height);
 
