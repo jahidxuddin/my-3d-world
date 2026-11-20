@@ -190,6 +190,27 @@ void window_render(const Window *window) {
     glBindVertexArray(0);
 }
 
+void window_toggle_fullscreen(Window *window) {
+    if (!window || !window->handle) return;
+
+    if (!window->fullscreen) {
+        glfwGetWindowPos(window->handle, &window->windowed_x, &window->windowed_y);
+        glfwGetWindowSize(window->handle, &window->windowed_width, &window->windowed_height);
+
+        GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode *mode = monitor ? glfwGetVideoMode(monitor) : NULL;
+        if (!monitor || !mode) return;
+
+        glfwSetWindowMonitor(window->handle, monitor, 0, 0, mode->width, mode->height,
+                             mode->refreshRate);
+        window->fullscreen = 1;
+    } else {
+        glfwSetWindowMonitor(window->handle, NULL, window->windowed_x, window->windowed_y,
+                             window->windowed_width, window->windowed_height, GLFW_DONT_CARE);
+        window->fullscreen = 0;
+    }
+}
+
 void window_destroy(Window *window) {
     if (!window) {
         return;

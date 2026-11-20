@@ -1,4 +1,4 @@
-#include "../../include/core/input.h"
+#include "core/window.h"
 
 static void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     Input *input = glfwGetWindowUserPointer(window);
@@ -36,6 +36,11 @@ static void key_callback(GLFWwindow *window, const int key, const int scancode, 
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+        Input *input = glfwGetWindowUserPointer(window);
+        if (input && input->owner) window_toggle_fullscreen(input->owner);
     }
 
     if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
