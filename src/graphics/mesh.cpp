@@ -1,21 +1,21 @@
 #include "../../include/graphics/mesh.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 Mesh *mesh_new(const Vertex *vertices, const size_t vertex_count, const unsigned int *indices, size_t index_count) {
-    Mesh *mesh = malloc(sizeof(Mesh));
+    const auto mesh = static_cast<Mesh *>(malloc(sizeof(Mesh)));
     if (!mesh) {
-        return NULL;
+        return nullptr;
     }
     mesh->vao = mesh->vbo = mesh->ebo = 0;
-    mesh->index_count = (GLsizei) index_count;
+    mesh->index_count = static_cast<GLsizei>(index_count);
 
     // create id's
     glCreateVertexArrays(1, &mesh->vao);
     glCreateBuffers(1, &mesh->vbo);
     glCreateBuffers(1, &mesh->ebo);
     // fill buffers
-    glNamedBufferData(mesh->vbo, (GLsizeiptr) (vertex_count * sizeof(Vertex)), vertices, GL_STATIC_DRAW);
-    glNamedBufferData(mesh->ebo, (GLsizeiptr) (index_count * sizeof(unsigned int)), indices, GL_STATIC_DRAW);
+    glNamedBufferData(mesh->vbo, static_cast<GLsizeiptr>(vertex_count * sizeof(Vertex)), vertices, GL_STATIC_DRAW);
+    glNamedBufferData(mesh->ebo, static_cast<GLsizeiptr>(index_count * sizeof(unsigned int)), indices, GL_STATIC_DRAW);
     // attach to vao
     glVertexArrayVertexBuffer(mesh->vao, 0, mesh->vbo, 0, sizeof(Vertex));
     glVertexArrayElementBuffer(mesh->vao, mesh->ebo);
@@ -39,7 +39,7 @@ void mesh_draw(const Mesh *mesh) {
     if (!mesh || mesh->vao == 0) {
         return;
     }
-    glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, nullptr);
 }
 
 void mesh_destroy(Mesh *mesh) {

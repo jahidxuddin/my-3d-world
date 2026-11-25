@@ -14,12 +14,12 @@ GrassField *grass_new(const PerlinNoise *noise, const TerrainConfig terrain_conf
                       const uint32_t count,
                       const uint32_t seed) {
     if (!noise || count == 0) {
-        return NULL;
+        return nullptr;
     }
 
-    GrassField *grass_field = calloc(1, sizeof(GrassField));
+    GrassField *grass_field = static_cast<GrassField *>(calloc(1, sizeof(GrassField)));
     if (!grass_field) {
-        return NULL;
+        return nullptr;
     }
 
     const float blade_vertices[] = {
@@ -60,10 +60,10 @@ GrassField *grass_new(const PerlinNoise *noise, const TerrainConfig terrain_conf
         14, 15, 16, 15, 17, 16, 16, 17, 18, 17, 19, 18, 18, 19, 20
     };
 
-    GrassInstance *instances = malloc(count * sizeof(GrassInstance));
+    GrassInstance *instances = static_cast<GrassInstance *>(malloc(count * sizeof(GrassInstance)));
     if (!instances) {
         free(grass_field);
-        return NULL;
+        return nullptr;
     }
 
     uint32_t rng = (seed == 0) ? 1 : seed;

@@ -3,9 +3,9 @@
 #include <stdlib.h>
 
 PerlinNoise *perlin_new(const uint32_t seed) {
-    PerlinNoise *perlin_noise = malloc(sizeof(PerlinNoise));
+    PerlinNoise *perlin_noise = static_cast<PerlinNoise *>(malloc(sizeof(PerlinNoise)));
     if (!perlin_noise) {
-        return NULL;
+        return nullptr;
     }
 
     for (uint32_t i = 0; i < 256; i++) {
@@ -43,7 +43,7 @@ static float fade(const float t) {
     return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
 }
 
-static float lerp(const float a, const float b, const float t) {
+static float interpolate(const float a, const float b, const float t) {
     return a + t * (b - a);
 }
 
@@ -84,14 +84,14 @@ float perlin_noise2d(const PerlinNoise *noise, float x, float y) {
     const uint8_t ba = p[p[X + 1] + Y];
     const uint8_t bb = p[p[X + 1] + Y + 1];
 
-    const float x1 = lerp(grad(aa, xf, yf),
+    const float x1 = interpolate(grad(aa, xf, yf),
                           grad(ba, xf - 1.0f, yf),
                           u);
-    const float x2 = lerp(grad(ab, xf, yf - 1.0f),
+    const float x2 = interpolate(grad(ab, xf, yf - 1.0f),
                           grad(bb, xf - 1.0f, yf - 1.0f),
                           u);
 
-    return lerp(x1, x2, v);
+    return interpolate(x1, x2, v);
 }
 
 float perlin_fbm2d(const PerlinNoise *noise, const float x, const float y,

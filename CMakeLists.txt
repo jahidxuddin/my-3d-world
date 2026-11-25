@@ -3,7 +3,7 @@ project(my_3d_world C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(glad STATIC external/glad/src/glad.c)
@@ -48,7 +48,10 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(glfw cglm assimp)
 
-file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c")
+file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
+        "src/*.cpp"
+        "src/*.c"
+)
 
 add_executable(my_3d_world ${PROJECT_SOURCES})
 

@@ -1,6 +1,7 @@
 #ifndef MY_3D_WORLD_WINDOW_H
 #define MY_3D_WORLD_WINDOW_H
 
+#include <memory>
 #include <glad/glad.h>
 #ifndef GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_NONE
@@ -19,7 +20,7 @@ struct Window {
     int windowed_x, windowed_y;
     int windowed_width, windowed_height;
     int fullscreen;
-    Camera *camera;
+    std::unique_ptr<Camera> camera;
     Terrain *terrain;
     Shader *terrain_shader;
     GrassField *grass;
@@ -37,7 +38,7 @@ void window_render(const Window *window);
 
 void window_run(Window *window);
 
-void window_destroy(Window *window);
+void window_destroy(const Window *window);
 
 void window_toggle_fullscreen(Window *window);
 

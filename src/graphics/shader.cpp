@@ -7,7 +7,7 @@ static char *read_file(const char *path) {
     FILE *file = fopen(path, "rb");
     if (!file) {
         printf("Failed to open shader file: %s\n", path);
-        return NULL;
+        return nullptr;
     }
 
     fseek(file, 0, SEEK_END);
@@ -16,13 +16,13 @@ static char *read_file(const char *path) {
 
     if (length < 0) {
         fclose(file);
-        return NULL;
+        return nullptr;
     }
 
-    char *buffer = malloc((size_t) length + 1);
+    char *buffer = static_cast<char *>(malloc(static_cast<size_t>(length) + 1));
     if (!buffer) {
         fclose(file);
-        return NULL;
+        return nullptr;
     }
 
     const size_t read_bytes = fread(buffer, 1, (size_t) length, file);
@@ -33,14 +33,14 @@ static char *read_file(const char *path) {
 
 static GLuint compile_shader(const GLenum type, const char *source, const char *path) {
     const GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, NULL);
+    glShaderSource(shader, 1, &source, nullptr);
     glCompileShader(shader);
 
     GLint success = 0;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         char info_log[512];
-        glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
+    glGetShaderInfoLog(shader, sizeof(info_log), nullptr, info_log);
         printf("Shader compilation error (%s):\n%s\n", path, info_log);
         glDeleteShader(shader);
         return 0;
@@ -56,7 +56,7 @@ Shader *shader_new(const char *vertex_path, const char *fragment_path) {
     if (!vertex_src || !fragment_src) {
         free(vertex_src);
         free(fragment_src);
-        return NULL;
+        return nullptr;
     }
 
     const GLuint vertex = compile_shader(GL_VERTEX_SHADER, vertex_src, vertex_path);
@@ -68,7 +68,7 @@ Shader *shader_new(const char *vertex_path, const char *fragment_path) {
     if (!vertex || !fragment) {
         glDeleteShader(vertex);
         glDeleteShader(fragment);
-        return NULL;
+        return nullptr;
     }
 
     const GLuint program = glCreateProgram();
@@ -83,16 +83,16 @@ Shader *shader_new(const char *vertex_path, const char *fragment_path) {
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         char info_log[512];
-        glGetProgramInfoLog(program, sizeof(info_log), NULL, info_log);
+    glGetProgramInfoLog(program, sizeof(info_log), nullptr, info_log);
         printf("Shader linking error:\n%s\n", info_log);
         glDeleteProgram(program);
-        return NULL;
+        return nullptr;
     }
 
-    Shader *shader = malloc(sizeof(Shader));
+    Shader *shader = static_cast<Shader *>(malloc(sizeof(Shader)));
     if (!shader) {
         glDeleteProgram(program);
-        return NULL;
+        return nullptr;
     }
 
     shader->id = program;

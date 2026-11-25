@@ -21,29 +21,29 @@ float terrain_get_height(const PerlinNoise *noise, const TerrainConfig config, c
 
 Terrain *terrain_new(const PerlinNoise *noise, const TerrainConfig config, vec3 position) {
     if (!noise || config.width < 2 || config.depth < 2) {
-        return NULL;
+        return nullptr;
     }
 
-    Terrain *terrain = malloc(sizeof(Terrain));
+    Terrain *terrain = static_cast<Terrain *>(malloc(sizeof(Terrain)));
     if (!terrain) {
-        return NULL;
+        return nullptr;
     }
 
-    terrain->mesh = NULL;
+    terrain->mesh = nullptr;
     terrain->config = config;
     glm_vec3_copy(position, terrain->position);
 
     const size_t vertex_count = (size_t) config.width * (size_t) config.depth;
     const size_t index_count = (size_t) (config.width - 1) * (size_t) (config.depth - 1) * 6;
 
-    Vertex *vertices = malloc(vertex_count * sizeof(Vertex));
-    uint32_t *indices = malloc(index_count * sizeof(uint32_t));
+    Vertex *vertices = static_cast<Vertex *>(malloc(vertex_count * sizeof(Vertex)));
+    uint32_t *indices = static_cast<uint32_t *>(malloc(index_count * sizeof(uint32_t)));
 
     if (!vertices || !indices) {
         free(vertices);
         free(indices);
         free(terrain);
-        return NULL;
+        return nullptr;
     }
 
     // Positionen, Höhen & Texturkoordinaten berechnen
@@ -112,7 +112,7 @@ Terrain *terrain_new(const PerlinNoise *noise, const TerrainConfig config, vec3 
 
     if (!terrain->mesh) {
         free(terrain);
-        return NULL;
+        return nullptr;
     }
 
     return terrain;
