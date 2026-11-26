@@ -1,7 +1,7 @@
 #include "../../include/graphics/shader.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 static char *read_file(const char *path) {
     FILE *file = fopen(path, "rb");
@@ -19,13 +19,13 @@ static char *read_file(const char *path) {
         return nullptr;
     }
 
-    char *buffer = static_cast<char *>(malloc(static_cast<size_t>(length) + 1));
+    const auto buffer = static_cast<char *>(malloc(static_cast<size_t>(length) + 1));
     if (!buffer) {
         fclose(file);
         return nullptr;
     }
 
-    const size_t read_bytes = fread(buffer, 1, (size_t) length, file);
+    const size_t read_bytes = fread(buffer, 1, static_cast<size_t>(length), file);
     buffer[read_bytes] = '\0';
     fclose(file);
     return buffer;
@@ -89,7 +89,7 @@ Shader *shader_new(const char *vertex_path, const char *fragment_path) {
         return nullptr;
     }
 
-    Shader *shader = static_cast<Shader *>(malloc(sizeof(Shader)));
+    auto *shader = static_cast<Shader *>(malloc(sizeof(Shader)));
     if (!shader) {
         glDeleteProgram(program);
         return nullptr;
@@ -113,12 +113,12 @@ void shader_destroy(Shader *shader) {
     free(shader);
 }
 
-void shader_set_int(const Shader *shader, const char *name, int value) {
+void shader_set_int(const Shader *shader, const char *name, const int value) {
     if (!shader) return;
     glProgramUniform1i(shader->id, glGetUniformLocation(shader->id, name), value);
 }
 
-void shader_set_float(const Shader *shader, const char *name, float value) {
+void shader_set_float(const Shader *shader, const char *name, const float value) {
     if (!shader) return;
     glProgramUniform1f(shader->id, glGetUniformLocation(shader->id, name), value);
 }
@@ -130,5 +130,5 @@ void shader_set_vec3(const Shader *shader, const char *name, const vec3 value) {
 
 void shader_set_mat4(const Shader *shader, const char *name, const mat4 value) {
     if (!shader) return;
-    glProgramUniformMatrix4fv(shader->id, glGetUniformLocation(shader->id, name), 1, GL_FALSE, (const float *) value);
+    glProgramUniformMatrix4fv(shader->id, glGetUniformLocation(shader->id, name), 1, GL_FALSE, reinterpret_cast<const float *>(value));
 }
